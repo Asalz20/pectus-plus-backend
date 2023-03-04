@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema(
     },
     cart: {
       type: Array,
-      defualt: [],
+      default: [],
     },
     address: [{ type: ObjectId, ref: "Address" }],
     wishList: [{ type: ObjectId, ref: "Product" }],

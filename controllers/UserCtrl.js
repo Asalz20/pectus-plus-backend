@@ -32,7 +32,7 @@ const createUser = asyncHandler(async (req, res) => {
   }
 });
 
-const loginUserCtrl = asyncHandler(async (req, res) => {
+const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   // Check if user exists
   const findUser = await User.findOne({ email });
@@ -107,7 +107,7 @@ const updateSingleUser = asyncHandler(async (req, res) => {
 
 module.exports = {
   createUser,
-  loginUserCtrl,
+  loginUser,
   getAllUsers,
   getSingleUser,
   deleteSingleUser,
