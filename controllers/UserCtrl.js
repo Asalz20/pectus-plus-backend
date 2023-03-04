@@ -1,7 +1,7 @@
 const User = require("../models/userModel");
 const asyncHandler = require("express-async-handler");
 const { generateToken } = require("../config/jwToken");
-
+const validateMongoDbId = require("../utils/validateMongoDbId");
 // const createUser = async (req, res) => {
 //   const email = req.body.email;
 //   const findUser = await User.findOne({ email: email });
@@ -61,7 +61,8 @@ const getAllUsers = asyncHandler(async (req, res) => {
 
 // Get a single user
 const getSingleUser = asyncHandler(async (req, res) => {
-  const { _id } = req.user;
+  const { id } = req.params;
+  validateMongoDbId(id);
   try {
     const getUser = await User.findById(_id);
     res.json({
@@ -72,8 +73,10 @@ const getSingleUser = asyncHandler(async (req, res) => {
   }
 });
 
+// Delete a single user
 const deleteSingleUser = asyncHandler(async (req, res) => {
-  const { _id } = req.user;
+  const { id } = req.params;
+  validateMongoDbId(id);
   try {
     const deleteUser = await User.findByIdAndDelete(_id);
     res.json({
@@ -87,6 +90,7 @@ const deleteSingleUser = asyncHandler(async (req, res) => {
 // Update a user
 const updateSingleUser = asyncHandler(async (req, res) => {
   const { _id } = req.user;
+  validateMongoDbId(_id);
   try {
     const updateUser = await User.findByIdAndUpdate(
       _id,
@@ -108,15 +112,14 @@ const updateSingleUser = asyncHandler(async (req, res) => {
 // Block a user
 const blockUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
+  validateMongoDbId(id);
   try {
     const blocked = await User.findByIdAndUpdate(
       id,
       { isBlocked: true },
       { new: true }
     );
-    res.json({
-      message: "User blocked",
-    });
+    res.json(blocked);
   } catch (error) {
     throw new Error(error);
   }
@@ -125,6 +128,7 @@ const blockUser = asyncHandler(async (req, res) => {
 // Unblock a user
 const unblockUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
+  validateMongoDbId(id);
   try {
     const unblocked = await User.findByIdAndUpdate(
       id,
