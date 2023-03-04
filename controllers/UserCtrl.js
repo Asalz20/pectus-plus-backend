@@ -61,9 +61,9 @@ const getAllUsers = asyncHandler(async (req, res) => {
 
 // Get a single user
 const getSingleUser = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const { _id } = req.user;
   try {
-    const getUser = await User.findById(id);
+    const getUser = await User.findById(_id);
     res.json({
       getUser,
     });
@@ -73,9 +73,9 @@ const getSingleUser = asyncHandler(async (req, res) => {
 });
 
 const deleteSingleUser = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const { _id } = req.user;
   try {
-    const deleteUser = await User.findByIdAndDelete(id);
+    const deleteUser = await User.findByIdAndDelete(_id);
     res.json({
       deleteUser,
     });
@@ -86,10 +86,10 @@ const deleteSingleUser = asyncHandler(async (req, res) => {
 
 // Update a user
 const updateSingleUser = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const { _id } = req.user;
   try {
     const updateUser = await User.findByIdAndUpdate(
-      id,
+      _id,
       {
         firstName: req.body.firstName,
         lastName: req.body.lastName,
@@ -105,6 +105,40 @@ const updateSingleUser = asyncHandler(async (req, res) => {
   }
 });
 
+// Block a user
+const blockUser = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  try {
+    const blocked = await User.findByIdAndUpdate(
+      id,
+      { isBlocked: true },
+      { new: true }
+    );
+    res.json({
+      message: "User blocked",
+    });
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
+// Unblock a user
+const unblockUser = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  try {
+    const unblocked = await User.findByIdAndUpdate(
+      id,
+      { isBlocked: false },
+      { new: true }
+    );
+    res.json({
+      message: "User unblocked",
+    });
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
 module.exports = {
   createUser,
   loginUser,
@@ -112,4 +146,6 @@ module.exports = {
   getSingleUser,
   deleteSingleUser,
   updateSingleUser,
+  blockUser,
+  unblockUser,
 };
