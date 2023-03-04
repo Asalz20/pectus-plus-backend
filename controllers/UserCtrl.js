@@ -83,10 +83,33 @@ const deleteSingleUser = asyncHandler(async (req, res) => {
     throw new Error(error);
   }
 });
+
+// Update a user
+const updateSingleUser = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  try {
+    const updateUser = await User.findByIdAndUpdate(
+      id,
+      {
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        email: req.body.email,
+      },
+      {
+        new: true,
+      }
+    );
+    res.json(updateUser);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
 module.exports = {
   createUser,
   loginUserCtrl,
   getAllUsers,
   getSingleUser,
   deleteSingleUser,
+  updateSingleUser,
 };
