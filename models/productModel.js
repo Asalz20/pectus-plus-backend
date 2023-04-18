@@ -29,7 +29,10 @@ const productSchema = new mongoose.Schema(
       type: String,
       enum: ["PPlus", "PHealth", "PNet"],
     },
-    quantity: Number,
+    quantity: {
+      type: Number,
+      required: true,
+    },
     sold: {
       type: Number,
       default: 0,
@@ -43,7 +46,7 @@ const productSchema = new mongoose.Schema(
     },
     ratings: [
       {
-        star: Numbers,
+        star: Number,
         postedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
       },
     ],
