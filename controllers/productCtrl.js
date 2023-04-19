@@ -20,14 +20,23 @@ const updateProduct = asyncHandler(async (req, res) => {
     if (req.body.title) {
       req.body.slug = slugify(req.body.title);
     }
-    const updateSingleProduct = await Product.findOneAndUpdate(
-      { _id: id },
-      req.body,
-      {
-        new: true,
-      }
-    );
+    const updateSingleProduct = await Product.findOneAndUpdate(id, req.body, {
+      new: true,
+    });
     res.json(updateSingleProduct);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
+const deleteProduct = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  try {
+    if (req.body.title) {
+      req.body.slug = slugify(req.body.title);
+    }
+    const deleteSingleProduct = await Product.findOneAndDelete(id);
+    res.json(deleteSingleProduct);
   } catch (error) {
     throw new Error(error);
   }
@@ -52,4 +61,10 @@ const getAllProduct = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { createProduct, getProduct, getAllProduct, updateProduct };
+module.exports = {
+  createProduct,
+  getProduct,
+  getAllProduct,
+  updateProduct,
+  deleteProduct,
+};
