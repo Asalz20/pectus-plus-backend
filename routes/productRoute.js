@@ -9,10 +9,10 @@ const {
 const { isAdmin, authMiddleware } = require("../middleware/authMiddleware");
 const router = express.Router();
 
-router.post("/", isAdmin, authMiddleware, createProduct);
+router.post("/", authMiddleware, isAdmin, createProduct);
 router.get("/:id", getProduct);
-router.put("/:id", isAdmin, authMiddleware, updateProduct);
-router.delete("/:id", isAdmin, authMiddleware, deleteProduct);
+router.put("/:id", authMiddleware, isAdmin, updateProduct);
+router.delete("/:id", authMiddleware, isAdmin, deleteProduct);
 router.get("/", getAllProduct);
 
 module.exports = router;
