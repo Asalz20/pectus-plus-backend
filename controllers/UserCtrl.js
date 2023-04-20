@@ -3,7 +3,9 @@ const asyncHandler = require("express-async-handler");
 const { generateToken } = require("../config/jwToken");
 const { generateRefreshToken } = require("../config/refreshToken");
 const validateMongoDbId = require("../utils/validateMongoDbId");
+const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
+const { sendEmail } = require("./emailCtrl");
 // const createUser = async (req, res) => {
 //   const email = req.body.email;
 //   const findUser = await User.findOne({ email: email });
@@ -220,6 +222,45 @@ const updatePassword = asyncHandler(async (req, res) => {
   }
 });
 
+const forgotPasswordToken = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) throw new Error("User not found with this email");
+  try {
+    const token = await user.createPasswordResetToken();
+    // after generating token, we save user
+    await user.save();
+    const resetURL = `Hello, please follow this link to reset your password. This link is valid for 10 minutes. <a href='http://localhost:3002/api/user/reset-password/${token}'>Click Here</a>`;
+    const data = {
+      to: email,
+      text: "Hello User",
+      subject: "Forgot Password Link",
+      htm: resetURL,
+    };
+    sendEmail(data);
+    res.json(token);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
+const resetPassword = asyncHandler(async (req, res) => {
+  const { password } = req.body;
+  const { token } = req.params;
+  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: Date.now() },
+  });
+  console.log(user);
+  if (!user) throw new Error("Token Expired. Please try again later");
+  user.password = password;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  await user.save();
+  res.json(user);
+});
+
 module.exports = {
   createUser,
   loginUser,
@@ -232,4 +273,6 @@ module.exports = {
   unblockUser,
   logout,
   updatePassword,
+  forgotPasswordToken,
+  resetPassword,
 };
