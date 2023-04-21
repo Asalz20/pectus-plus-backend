@@ -12,7 +12,7 @@ const createCategory = asyncHandler(async (req, res) => {
 });
 
 const updateCategory = asyncHandler(async (req, res) => {
-  const id = req.params;
+  const { id } = req.params;
   try {
     const updateCategory = await Category.findByIdAndUpdate(id, req.body, {
       new: true,
