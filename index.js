@@ -5,6 +5,7 @@ const app = express();
 const authRouter = require("./routes/authRoute");
 const productRouter = require("./routes/productRoute");
 const categoryRouter = require("./routes/categoryRoute");
+const brandRouter = require("./routes/brandRoute");
 const cookieParser = require("cookie-parser");
 const PORT = process.env.PORT || 4000;
 const morgan = require("morgan");
@@ -17,6 +18,7 @@ app.use(cookieParser());
 app.use("/api/user", authRouter);
 app.use("/api/product", productRouter);
 app.use("/api/category", categoryRouter);
+app.use("/api/brand", brandRouter);
 
 app.use(notFound);
 app.use(errorHandler);
