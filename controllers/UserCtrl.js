@@ -67,6 +67,39 @@ const loginUser = asyncHandler(async (req, res) => {
   }
 });
 
+// Admin login
+const loginAdmin = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+  // Check if user exists
+  // May be more expensive because finding full document
+  // const findUser = await User.findOne({ email });
+  const findAdmin = await User.findOne({ email });
+  if (findAdmin.role !== "admin") throw new Error("Not Authorized");
+  if (findAdmin && (await findAdmin.isPasswordMatched(password))) {
+    // generateRefreshToken assigns a jwt to the specific id passed through
+    const refreshToken = await generateRefreshToken(findAdmin._id);
+    const updateUser = await User.findByIdAndUpdate(
+      findAdmin.id,
+      { refreshToken: refreshToken },
+      { new: true }
+    );
+    // Assigns refresh token to cookie
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      maxAge: 72 * 60 * 60 * 1000,
+    });
+    res.json({
+      _id: findAdmin._id,
+      firstName: findAdmin.firstName,
+      lastName: findAdmin.lastName,
+      email: findAdmin.email,
+      token: generateToken(findAdmin._id),
+    });
+  } else {
+    throw new Error("Invalid Credentials");
+  }
+});
+
 // Handle refresh token
 const handleRefreshToken = asyncHandler(async (req, res) => {
   const cookie = req.cookies;
@@ -275,4 +308,5 @@ module.exports = {
   updatePassword,
   forgotPasswordToken,
   resetPassword,
+  loginAdmin,
 };
