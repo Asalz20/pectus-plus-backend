@@ -13,7 +13,7 @@ const cartSchema = mongoose.Schema(
         price: Number,
       },
     ],
-    cardTotal: Number,
+    cartTotal: Number,
     orderby: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

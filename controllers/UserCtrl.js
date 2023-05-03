@@ -1,14 +1,15 @@
 const User = require("../models/userModel");
 const Product = require("../models/productModel");
 const Cart = require("../models/cartModel");
+const Order = require("../models/orderModel");
 const asyncHandler = require("express-async-handler");
 const { generateToken } = require("../config/jwToken");
 const { generateRefreshToken } = require("../config/refreshToken");
 const validateMongoDbId = require("../utils/validateMongoDbId");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
+const uniqid = require("uniqid");
 const { sendEmail } = require("./emailCtrl");
-const { log } = require("console");
 // const createUser = async (req, res) => {
 //   const email = req.body.email;
 //   const findUser = await User.findOne({ email: email });
@@ -352,12 +353,13 @@ const userCart = asyncHandler(async (req, res) => {
     for (let i = 0; i < products.length; i++) {
       cartTotal += products[i].price * products[i].count;
     }
-    console.log(products, cartTotal);
+    // console.log(products, cartTotal);
     let newCart = await new Cart({
       products,
       cartTotal,
       orderby: user._id,
     }).save();
+    console.log(newCart);
     res.json(newCart);
   } catch (error) {
     throw new Error(error);
@@ -389,6 +391,77 @@ const emptyCart = asyncHandler(async (req, res) => {
   }
 });
 
+const createOrder = asyncHandler(async (req, res) => {
+  const { NP } = req.body;
+  const { _id } = req.user;
+  validateMongoDbId(_id);
+  try {
+    if (!NP) throw new Error("Failed to create order");
+    const user = await User.findById(_id);
+    const userCart = await Cart.findOne({ orderby: user._id });
+    let finalAmount = userCart.cartTotal;
+    let newOrder = await new Order({
+      products: userCart.products,
+      paymentIntent: {
+        id: uniqid(),
+        method: "card",
+        amount: finalAmount,
+        status: "Not Processed",
+        created: Date.now(),
+        currency: "USD",
+      },
+      orderby: user._id,
+      orderStatus: "Not Processed",
+    }).save();
+    let update = userCart.products.map((item) => {
+      return {
+        updateOne: {
+          filter: { _id: item.product._id },
+          update: { $inc: { quantity: -item.count, sold: +item.count } },
+        },
+      };
+    });
+    const updated = await Product.bulkWrite(update);
+    res.json({ message: "Order created successfully" });
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
+const getOrders = asyncHandler(async (req, res) => {
+  const { _id } = req.user;
+  validateMongoDbId(_id);
+  try {
+    const userOrders = await Order.find({ orderby: _id })
+      .populate("products.product")
+      .exec();
+    res.json(userOrders);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
+const updateOrderStatus = asyncHandler(async (req, res) => {
+  const { status } = req.body;
+  const { id } = req.params;
+  validateMongoDbId(id);
+  try {
+    const updateOrderStatus = await Order.findByIdAndUpdate(
+      id,
+      {
+        orderStatus: status,
+        paymentIntent: {
+          status: status,
+        },
+      },
+      { new: true }
+    );
+    res.json(updateOrderStatus);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
 module.exports = {
   createUser,
   loginUser,
@@ -409,4 +482,7 @@ module.exports = {
   userCart,
   getUserCart,
   emptyCart,
+  createOrder,
+  getOrders,
+  updateOrderStatus,
 };
